@@ -40,19 +40,28 @@ router.post('/login', (req, res) => {
       }
     })
     .catch(err => {
+      console.log(err);
       res.status(500).json(err);
     });
 });
 
 // GET /api/users endpoint
 router.get('/users', restricted, (req, res) => {
-  const { subject, username, department } = req.decodedToken;
+  const { username, department } = req.decodedToken;
 
-  Users.find()
-    .then(users => {
-      res.json({ loggedInUser: username, department, users });
-    })
-    .catch(err => res.status(500).send(err));
+  if (department === 'management') {
+    Users.find()
+      .then(users => {
+        res.json({ loggedInUser: username, department, users });
+      })
+      .catch(err => res.status(500).send(err));
+  } else {
+    Users.findBy({ department })
+      .then(users => {
+        res.json({ loggedInUser: username, department, users });
+      })
+      .catch(err => res.status(500).send(err));
+  }
 });
 
 function generateToken(user) {
